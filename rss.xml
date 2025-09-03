@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Yousuf’s Dev Blog</title>
+    <link>https://example.com/</link>
+    <description>Notes on Java, Spring, AWS, and systems — crisp, code-first posts.</description>
+    <lastBuildDate>Wed, 03 Sep 2025 03:51:04 +0000</lastBuildDate>
+    <item>
+      <title>Volatile vs Atomic in Java: Why count++ Lies to You</title>
+      <link>https://example.com/posts/volatile-vs-atomic.html</link>
+      <pubDate>Wed, 03 Sep 2025 03:51:04 +0000</pubDate>
+      <description>When to use volatile vs AtomicInteger, how CAS works, and why count++ isn’t atomic — with runnable code and a stress test.</description>
+      <guid>https://example.com/posts/volatile-vs-atomic.html</guid>
+    </item>
+  </channel>
+</rss>
