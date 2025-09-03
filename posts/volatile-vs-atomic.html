@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Volatile vs Atomic in Java: Why count++ Lies to You · Yousuf’s Dev Blog</title>
+  <meta name="description" content="When to use volatile vs AtomicInteger, how CAS works, and why count++ isn’t atomic — with runnable code and a stress test.">
+  <meta property="og:title" content="Volatile vs Atomic in Java: Why count++ Lies to You">
+  <meta property="og:description" content="When to use volatile vs AtomicInteger, how CAS works, and why count++ isn’t atomic — with runnable code and a stress test.">
+  <meta property="og:type" content="article">
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <h1><a href="/" style="text-decoration:none;color:inherit;">Yousuf’s Dev Blog</a></h1>
+        <p>Notes on Java, Spring, AWS, and systems — crisp, code-first posts.</p>
+      </div>
+      <nav class="nav">
+        <a href="/">Home</a>
+      </nav>
+    </header>
+
+    <article class="card">
+      <h1>Volatile vs Atomic in Java: Why count++ Lies to You</h1>
+      <div class="post-meta">2025-09-03 · by Yousuf Roushan Ali</div>
+
+      <p><span class="tag">Java</span><span class="tag">Concurrency</span><span class="tag">CAS</span></p>
+
+      <p><strong>TL;DR</strong>: <code>volatile</code> gives visibility (and prevents some reordering) but not atomicity. 
+      <code>AtomicInteger</code> gives atomic read‑modify‑write via CAS. For very high contention counters, prefer <code>LongAdder</code>.</p>
+      
+      <h2>The myth: “volatile makes it thread‑safe”</h2>
+      <pre><code>class VolatileCounter {
+  private volatile int count = 0;   // visibility only
+  public void increment() { count++; } // ❌ NOT atomic
+  public int get() { return count; }
+}</code></pre>
+      <p><em>Why?</em> <code>count++</code> is three steps: read → add → write. Two threads can read the same old value and overwrite each other’s increments.</p>
+
+      <h2>The fix: Atomic classes (CAS)</h2>
+      <pre><code>import java.util.concurrent.atomic.AtomicInteger;
+
+class AtomicCounter {
+  private final AtomicInteger count = new AtomicInteger();
+  public void increment() { count.incrementAndGet(); } // ✅ atomic
+  public int get() { return count.get(); }
+}</code></pre>
+
+      <h3>CAS loop, conceptually</h3>
+      <pre><code>int prev, next;
+do {
+  prev = count.get();     // volatile read
+  next = prev + 1;        // compute
+} while (!count.compareAndSet(prev, next)); // retry on contention</code></pre>
+
+      <h2>Stress it (so the race shows up)</h2>
+      <p>Use many threads, start them together, do lots of increments, run multiple trials.</p>
+      <pre><code>// Expect volatile &lt; target; atomic == target
+static final int N_THREADS = Runtime.getRuntime().availableProcessors() * 2;
+static final int INCREMENTS_PER_THREAD = 200_000;</code></pre>
+
+      <h2>When to use what</h2>
+      <ul>
+        <li><strong>volatile</strong>: flags, lifecycle booleans</li>
+        <li><strong>AtomicInteger/Long</strong>: counters, sequences</li>
+        <li><strong>LongAdder</strong>: very high‑contention counters</li>
+        <li><strong>Locks</strong>: multi‑field invariants</li>
+      </ul>
+
+      <hr>
+      <p><em>Found this useful?</em> Next up: Happens‑Before (start &amp; join), ReentrantLock vs synchronized, and a deep dive into ConcurrentHashMap.</p>
+    </article>
+
+    <footer>
+      © 2025 Yousuf Roushan Ali · <a href="/">Back to Home</a>
+    </footer>
+  </div>
+  <script src="/assets/script.js"></script>
+</body>
+</html>
